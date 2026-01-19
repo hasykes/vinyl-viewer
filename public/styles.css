@@ -32,7 +32,11 @@ html {
 
 .move {
 	display: inline-block;
-	transform-style: preserve-3d
+	transform-style: preserve-3d;
+	
+	&:focus {
+		outline: none;
+	}
 }
 
 figure {
