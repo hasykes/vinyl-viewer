@@ -1,0 +1,149 @@
+html, body { display: grid }
+
+html {
+	min-height: 100%;
+	background: #121212;
+}
+
+.wrap {
+	--d: clamp(5em, 16vw, 15em);
+	place-self: center;
+	overflow-x: scroll;
+	scroll-snap-type: x proximity;
+	padding: var(--d) 0;
+	max-width: calc(6*var(--d));
+	perspective: calc(3*var(--d));
+	white-space: nowrap;
+	scrollbar-color: crimson #212121;
+	scroll-snap-stop: always;
+	
+	&::before, &::after {
+		display: inline-block;
+		width: calc(50% - .5*var(--d));
+		height: 1px;
+		content: ''
+	}
+	
+	&:focus {
+		outline: none;
+		box-shadow: 0 0 2px crimson
+	}
+}
+
+.move {
+	display: inline-block;
+	transform-style: preserve-3d
+}
+
+figure {
+	display: inline-block;
+	/*scroll-snap-align: center;*/
+	margin: 0;
+	transform-style: preserve-3d;
+	width: var(--d);
+	animation: 
+		ry 1s cubic-bezier(.32, 0, .68, 0) both, 
+		tz 1s ease-in both;
+	animation-timeline: view(inline);
+}
+
+.infoText {
+    color: #ffffff50;
+    font: .75em/ 1.2 ubuntu, trebuchet ms, arial, sans-serif;
+    text-align: center;
+    margin-bottom: .5em;
+	width: 100%;
+}
+
+img {
+	width: 100%;
+	aspect-ratio: 1;
+	-webkit-box-reflect: 
+		below .5em linear-gradient(#0000, #0004);
+}
+
+@keyframes ry {
+	0% { rotate: y -90deg }
+	50% {
+		rotate: y 0deg;
+		animation-timing-function: cubic-bezier(.32, 1, .68, 1)
+	}
+	100% { rotate: y 90deg }
+}
+
+@keyframes tz {
+	0% { translate: -50% 0 }
+	50% {
+		translate: 0 0 calc(1.5*var(--d));
+		animation-timing-function: ease-out
+	}
+	100% { translate: 50% 0 }
+}
+
+
+.box-info-scrollani {
+	margin: 1em;
+	border-left: solid 5px #dc3055;
+	padding: 1em;
+	box-shadow: 2px 2px 5px hsla(0, 0%, 0%, .35);
+	background: #851d40;
+	color: #fff;
+	font: 1.25em/ 1.25 ubuntu, trebuchet ms, arial, sans-serif;
+	
+	@supports (animation-timeline: view()) { display: none }
+}
+
+kbd {
+	padding: 2px;
+	background: hsla(0, 0%, 0%, .35);
+	font: 1.1em/ 1.2 ubuntu mono, consolas, monaco, monospace
+}
+
+a { color: gold }
+a:is(:focus, :hover) { color: lightskyblue }
+
+.controls {
+    width: 100%;
+    z-index: 10;
+}
+
+.alphabet {
+    display:flex;
+    align-items: center;
+    margin: 0 5em;
+    font: 2em/ 1.25 ubuntu, trebuchet ms, arial, sans-serif;
+    color: #ffffffb8;
+}
+
+.letter{
+    flex:1 1 auto;
+    transition: 0.3s ease;
+}
+
+.letter:hover{
+	color: #fff;
+	transform:scale(1.2);
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.active{
+    transform:scale(1.5);
+    color: crimson;
+    font-style:bold;
+}
+
+figure.is-active img {
+  outline: 2px solid rgba(208, 208, 208, 0.152);
+  outline-offset: 2px;
+  border-radius: 3px;
+  transition: 0.3s ease;
+}
+
+.is-active .infoText {
+	color: #fff;
+	scale: 1.15;
+	font-weight: bold;
+	transition: 0.3s ease;
+}
+

@@ -1,0 +1,20 @@
+{
+  "name": "vinyl_viewer",
+  "version": "1.0.0",
+  "description": "A simple scrollable gallery view for any vinyl collection, optimized for usage on a rooted spotify carthing.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "disconnect": "^1.2.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "type": "module"
+}

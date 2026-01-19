@@ -1,0 +1,168 @@
+<!--Based on https://codepen.io/thebabydino/pen/dyEVGrx-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vinyl Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="dataStore.js"></script>
+</head>
+<body>
+
+  <section class="wrap" id="scrollContainer" aria-label="Vinyl scroller">
+    <div class="move" id="grid" tabindex="0"></div>
+  </section>
+  <section class="controls">
+    <div class="alphabet">
+        <span class="letter active" onclick="scrollToLetter('A')">A</span>
+        <span class="letter" onclick="scrollToLetter('B')">B</span>
+        <span class="letter" onclick="scrollToLetter('C')">C</span>
+        <span class="letter" onclick="scrollToLetter('D')">D</span>                  
+        <span class="letter" onclick="scrollToLetter('E')">E</span>
+        <span class="letter" onclick="scrollToLetter('F')">F</span>
+        <span class="letter" onclick="scrollToLetter('G')">G</span>
+        <span class="letter" onclick="scrollToLetter('H')">H</span>
+        <span class="letter" onclick="scrollToLetter('I')">I</span>
+        <span class="letter" onclick="scrollToLetter('J')">J</span>
+        <span class="letter" onclick="scrollToLetter('K')">K</span>
+        <span class="letter" onclick="scrollToLetter('L')">L</span>
+        <span class="letter" onclick="scrollToLetter('M')">M</span>
+        <span class="letter" onclick="scrollToLetter('N')">N</span>
+        <span class="letter" onclick="scrollToLetter('O')">O</span>
+        <span class="letter" onclick="scrollToLetter('P')">P</span>
+        <span class="letter" onclick="scrollToLetter('Q')">Q</span>
+        <span class="letter" onclick="scrollToLetter('R')">R</span>
+        <span class="letter" onclick="scrollToLetter('S')">S</span>
+        <span class="letter" onclick="scrollToLetter('T')">T</span>
+        <span class="letter" onclick="scrollToLetter('U')">U</span>
+        <span class="letter" onclick="scrollToLetter('V')">V</span>
+        <span class="letter" onclick="scrollToLetter('W')">W</span>
+        <span class="letter" onclick="scrollToLetter('X')">X</span>
+        <span class="letter" onclick="scrollToLetter('Y')">Y</span>
+        <span class="letter" onclick="scrollToLetter('Z')">Z</span>
+     </div>
+  </section>
+  <script>
+    
+    const scrollContainer = document.getElementById('scrollContainer');
+   
+    const grid = document.getElementById('grid');
+    grid.focus();
+
+    cachedCollection.forEach((c, i) => {
+
+      var fig = document.createElement('figure');
+      var img = document.createElement('img');
+      var artistText = document.createElement('div');
+      var albumText = document.createElement('div');
+
+      const artistName = c.basic_information?.artists?.[0]?.name ?? '';
+      const firstLetter = artistName.split(' ')[0] === 'The' ? artistName.split(' ')[1].charAt(0).toUpperCase() : artistName.charAt(0).toUpperCase();
+
+      fig.dataset.artist = artistName;
+      fig.dataset.letter = /[A-Z]/.test(firstLetter) ? firstLetter : '#';
+      fig.dataset.index = i;
+      fig.tabIndex = -1; // programmatically focusable
+
+      artistText.classList.add('infoText');
+      artistText.textContent = `${c.basic_information.artists[0].name}`;  
+      albumText.classList.add('infoText');
+      albumText.textContent = `${c.basic_information.title} (${c.basic_information.year})`;
+      img.src = c.basic_information.cover_image;
+      img.alt = `${c.basic_information.artists[0].name} — ${c.basic_information.title} (${c.basic_information.year})`;
+      i > 5 ? img.loading = 'lazy' : img.loading = 'eager';
+      fig.appendChild(img);
+      fig.appendChild(artistText);
+      fig.appendChild(albumText);
+      grid.appendChild(fig);
+    });
+
+    const figures = Array.from(grid.querySelectorAll('figure'));
+  
+    let rafId = null;
+
+    const updateActiveFigure = () => {
+      rafId = null;
+      if (!figures.length) return;
+
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const centerX = (containerRect.left + containerRect.right) / 2;
+
+      let bestEl = figures[0];
+      let bestDist = Infinity;
+
+      for (const f of figures) {
+        const rect = f.getBoundingClientRect();
+        const figCenterX = (rect.left + rect.right) / 2;
+        const dist = Math.abs(figCenterX - centerX);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestEl = f;
+        }
+      }
+
+      figures.forEach(f => {
+        const isActive = f === bestEl;
+        f.classList.toggle('is-active', isActive);
+        f.childNodes.forEach(n => {
+          if (n.classList && n.classList.contains('infoText')) {
+            n.classList.toggle('is-active', isActive);
+          }
+        });
+      });
+
+      const letter = bestEl.dataset.letter || '#';
+      setActiveLetter(letter);
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(updateActiveFigure);
+    };
+
+    scrollContainer.addEventListener('scroll', onScroll, { passive: true });
+    updateActiveFigure();
+
+    // initialize once (use the first card)
+    if (figures[0]) setActiveLetter(figures[0].dataset.letter || '#');
+        
+    function setActiveLetter(letter) {
+        document.querySelectorAll('.alphabet .letter').forEach(el => {
+            el.classList.toggle('active', el.textContent === letter);
+        });
+    }
+
+    function scrollToLetter(letter) {
+      const target = figures.find(f => f.dataset.letter === letter);
+      if (!target) return;
+
+      const container = scrollContainer;
+
+      // iterative correction because transforms change as we scroll
+      let i = 0;
+      const maxIters = 12;
+      const tolerancePx = 0.75;
+
+      function step() {
+        const c = container.getBoundingClientRect();
+        const t = target.getBoundingClientRect();
+
+        const containerCenter = (c.left + c.right) / 2;
+        const targetCenter = (t.left + t.right) / 2;
+
+        const error = targetCenter - containerCenter; // + means target is to the right
+        if (Math.abs(error) <= tolerancePx || i++ >= maxIters) return;
+
+        // apply a fraction to avoid oscillation when transforms are strong
+        container.scrollLeft += error * 0.9;
+
+        requestAnimationFrame(step);
+      }
+
+      step();
+    }
+
+</script>
+</body>
+</html>
